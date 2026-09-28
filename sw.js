@@ -1,5 +1,5 @@
 // Enes FitApp — uygulama kabuğu önbelleği. Sürümü her yayında artır (enesfit-v1 -> v2 -> ...).
-const CACHE = 'enesfit-v1';
+const CACHE = 'enesfit-v2';
 
 // Kurulumda dosyaları önceden çekmeyi (cache.addAll) DENEMİYORUZ: bazı ortamlarda
 // (test edilen headless Chrome dahil) bu istekler hiç tamamlanmayıp "installing"
