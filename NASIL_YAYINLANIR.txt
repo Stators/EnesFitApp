@@ -1,0 +1,95 @@
+ENES FITAPP - INTERNET ADRESINE YAYINLAMA (iPhone icin gerekli)
+==============================================================
+
+NEDEN GEREKLI?
+iPhone'da WhatsApp ya da Dosyalar'dan bir .html dosyasina dokununca dosya bir
+onizlemede acilir ve uygulama calismaz (bos sayfa). Uygulama bir internet
+adresinden (https) acilinca telefonda da bilgisayarda da sorunsuz calisir,
+Safari'den "Ana Ekrana Ekle" ile uygulama gibi kurulur ve internet olmadan
+da acilir.
+
+Bu klasordeki dosyalar - hepsini birlikte yayinlayin (klasoru oldugu gibi):
+  index.html            -> uygulama
+  manifest.json, sw.js  -> "Ana Ekrana Ekle" ile kurulabilir, cevrimdisi calisir
+  logo.svg, icon-*.png  -> logo / simge dosyalari
+  NASIL_YAYINLANIR.txt  -> bu kilavuz
+
+
+YAYINDA: https://stators.github.io/EnesFitApp/
+Bu adres GitHub Pages ile yayinlaniyor (repo: Stators/EnesFitApp, klasor: Yayin).
+Dosyalari guncelledikten sonra GitHub Desktop'ta Commit + Push yeterli, 1-2
+dakika icinde adres guncellenir.
+
+
+GITHUB ERISIMI: "SADECE LINK VERDIKLERIM GORSUN" MUMKUN MU?
+-------------------------------------------------------------
+Arastirdim: kisisel GitHub hesaplarinda boyle bir kisitlama YOK. Repo public
+oldugu icin site hicbir yerde listelenmiyor/aranmiyor, sadece verdigin linki
+bilen acabiliyor - zaten ucretsiz en iyi durum bu. GitHub Pro'ya gecip repoyu
+private yapsan bile SADECE kaynak kod gizlenir, site adresi yine linki bilen
+HERKESE acik kalir. Gercek "sadece izin verdiklerim" kisitlamasi (e-posta bazli
+erisim listesi) sadece kurumsal (Enterprise Cloud organizasyon) hesaplarda var.
+Bu yuzden repo public birakildi, baska bir sey yapilmadi.
+
+
+KAYITLAR NEREDE SAKLANIYOR? (COK ONEMLI - 3-5 ARKADASINA LINK ATACAKSAN OKU)
+-------------------------------------------------------------------------------
+Girilen tum kayitlar (kg, tekrar, olcu, ayarlar, sectigi renk) HER KULLANICININ
+KENDI TELEFONUNDAKI tarayicida saklanir. Sunucu yok, hesap yok. Yani:
+  - Ayni linki 5 arkadasin acarsa, her birinin verisi kendi telefonunda AYRI
+    saklanir, birbirine KARISMAZ, kimse baskasinin verisini goremez.
+  - AYNI telefonu iki kisi kullanirsa (ortak telefon) veriler UZERINE YAZILIR.
+    Her arkadas KENDI telefonundan acmali.
+  - Sayfayi/uygulamayi kapatinca kaybolmaz; yeniden acinca ayni yerden devam
+    eder (bunu gercek kapat-ac testiyle dogruladim).
+Yine de su durumlarda veri kaybolabilir:
+  - iPhone'da Safari, bir siteyi 7 gun hic acmazsan o sitenin verisini silebilir.
+    KORUNMAK ICIN: "Ana Ekrana Ekle" ile ekleyin ve oradan acin (asagida).
+  - Safari "Ozel gezinme" (gizli sekme) ya da "Tum web sitesi verilerini sil".
+  - Uygulama FARKLI bir adresten acilirsa (ornegin dosya olarak) veriler o
+    adreste degil, bu adreste (stators.github.io) kalir.
+  - Telefon degisirse veriler otomatik tasinmaz.
+Bu yuzden uygulama 3+ kayittan sonra haftada bir "Yedekle" hatirlatmasi gosterir.
+Yedek almak: Ayarlar > "Yedegi indir" ya da "Antrenore gonder".
+Yedegi yuklemek: Ayarlar > "Yedegi yukle".
+
+
+"ANA EKRANA EKLE" - UYGULAMA GIBI KURULUM (ONERILIR)
+------------------------------------------------------
+iPhone: Safari'de adresi ac > Paylas > "Ana Ekrana Ekle".
+Android: Chrome'da adresi ac > sag ustteki uc nokta > "Uygulamayi yukle" (ya da
+  Ayarlar icindeki "Uygulamayi yukle" dugmesi, tarayici izin verirse cikar).
+Kurulduktan sonra internet olmadan da acilir (ilk birkac ziyaretten sonra).
+
+
+ILK ACILIS AKISI
+------------------
+1) Once "Rengini sec" ekrani cikar (6 hazir renk, istediginde Ayarlar'dan
+   degistirilebilir).
+2) Sonra karsilama mektubu ve 1 dakikalik tanitim turu (sekmelerin ne yaptigini
+   gosterir). Ust bardaki "?" dugmesi turu istedigin zaman tekrar acar.
+
+
+MAIL GONDERIMINI ETKINLESTIRME (bir kez)
+----------------------------------------
+"Antrenore gonder" > "Mail olarak gonder" raporu formsubmit.co servisiyle
+enesfincan79@gmail.com adresine yollar. Servis, bir adrese ilk kez gonderim
+yapildiginda o adrese bir ONAY MAILI atar.
+1) Yayinlanmis adresten (kendi telefonundan) once bir kez "Mail olarak gonder"e bas.
+2) Gmail'e formsubmit'ten gelen "Activate" mailini ac, "Activate Form"a tikla.
+   (Spam/Gereksiz klasorune de bak.)
+3) Bundan sonra Ozan'in gonderimleri dogrudan gelir.
+Onay gelmemisse ya da internet yoksa uygulama "Gonderildi" YAZMAZ; mail
+uygulamasini acan yedek yollari gosterir.
+
+
+ANTRENOR OLARAK RAPORU ACMAK
+----------------------------
+Maildeki rapor dosyasini indir (enes-fitapp-rapor-....json). Uygulamada
+Ayarlar > "Antrenor gorunumu" > dosyayi sec. Ozan'in tum kayitlarini, grafiklerini
+ve olculerini salt okunur gorursun. Dosyayi acamazsan "Rapor yapistir" ile
+dosyanin icerigini yapistirabilirsin.
+
+
+NOT: Ayni uygulama farkli adreslerde (dosya, github.io, baska bir yayin) ayri
+veri saklar. Ozan yayinlanan adresi kullanmaya basladiktan sonra adres degismesin.

@@ -9,6 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Enes FitApp">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2215%22%20fill%3D%22%232a78d6%22%2F%3E%3Cg%20fill%3D%22%23fff%22%3E%3Crect%20x%3D%2216%22%20y%3D%2213%22%20width%3D%229%22%20height%3D%2238%22%20rx%3D%223%22%2F%3E%3Crect%20x%3D%2216%22%20y%3D%2213%22%20width%3D%2222%22%20height%3D%229%22%20rx%3D%223%22%2F%3E%3Crect%20x%3D%2216%22%20y%3D%2227.5%22%20width%3D%2230%22%20height%3D%229%22%20rx%3D%223%22%2F%3E%3Crect%20x%3D%2216%22%20y%3D%2242%22%20width%3D%2238%22%20height%3D%229%22%20rx%3D%223%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
 <title>Enes FitApp</title>
 <style>
@@ -31,6 +32,25 @@
   --bg:#111110; --surface:#1a1a19; --surface2:#242423; --ink:#f4f4f1; --ink2:#c3c2b7; --muted:#9a998f;
   --line:#2d2d2b; --grid:#2a2a28; --s1:#3987e5; --link:#6da7ec; --shadow:0 1px 2px rgba(0,0,0,.4);
 }
+/* ---- arayüz rengi (vurgu): mavi varsayılan, diğerleri beyaz-metin ve yüzey kontrastı hesaplanarak seçildi ---- */
+[data-accent="orange"]{--s1:#eb6834; --btn:#ce4914; --link:#c94714;}
+[data-accent="aqua"]{--s1:#1baf7a; --btn:#15875e; --link:#14835b;}
+[data-accent="green"]{--s1:#008300; --btn:#008300; --link:#008300;}
+[data-accent="violet"]{--s1:#4a3aa7; --btn:#4a3aa7; --link:#4a3aa7;}
+[data-accent="red"]{--s1:#e34948; --btn:#df2f2d; --link:#de2a29;}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"]))[data-accent="orange"]{--s1:#d95926; --btn:#c35022; --link:#da5c2a;}
+  :root:where(:not([data-theme="light"]))[data-accent="aqua"]{--s1:#199e70; --btn:#15845d; --link:#199e70;}
+  :root:where(:not([data-theme="light"]))[data-accent="green"]{--s1:#008300; --btn:#008300; --link:#009700;}
+  :root:where(:not([data-theme="light"]))[data-accent="violet"]{--s1:#9085e9; --btn:#7162e3; --link:#9085e9;}
+  :root:where(:not([data-theme="light"]))[data-accent="red"]{--s1:#e66767; --btn:#dd3232; --link:#e66767;}
+}
+:root[data-theme="dark"][data-accent="orange"]{--s1:#d95926; --btn:#c35022; --link:#da5c2a;}
+:root[data-theme="dark"][data-accent="aqua"]{--s1:#199e70; --btn:#15845d; --link:#199e70;}
+:root[data-theme="dark"][data-accent="green"]{--s1:#008300; --btn:#008300; --link:#009700;}
+:root[data-theme="dark"][data-accent="violet"]{--s1:#9085e9; --btn:#7162e3; --link:#9085e9;}
+:root[data-theme="dark"][data-accent="red"]{--s1:#e66767; --btn:#dd3232; --link:#e66767;}
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;overflow-x:hidden}
 img,svg{max-width:100%}
@@ -237,6 +257,10 @@ body.lock{overflow:hidden}
 .dlg h2{font-size:20px}
 .dlg .letter{white-space:pre-line;color:var(--ink2);font-size:15px}
 .dlg .acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.swrow{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.sw{width:42px;height:42px;border-radius:50%;border:2px solid transparent;background:var(--sw);position:relative;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.sw[aria-pressed="true"]{border-color:var(--ink)}
+.sw[aria-pressed="true"]::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px;text-shadow:0 1px 2px rgba(0,0,0,.45)}
 .hidden{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
@@ -292,6 +316,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 <div id="tour" hidden></div>
 
 <script>
+let deferredInstall=null;
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferredInstall=e});
 window.addEventListener("error",function(e){var b=document.getElementById("boot");if(b){b.innerHTML="<b>Uygulama başlatılamadı</b><p class=\"sub\" style=\"margin-top:6px\">"+String(e.message||e).replace(/</g,"&lt;")+"</p><p class=\"sub\">Tarayıcını güncelle ya da uygulamayı Chrome / Safari ile internet adresinden aç.</p>"}});
 </script>
 <script>
@@ -370,6 +396,8 @@ const DAY_BY_WD=['pzt','sal','crs','prs','cum','cmt',null];
 const SLOT={},MOVE={},MID_ORDER=[];
 DAYS.forEach(d=>d.ex.forEach(e=>{e.day=d;SLOT[e.slot]=e;if(!MOVE[e.mid]){MOVE[e.mid]={ad:e.mad||e.ad,hi:0};MID_ORDER.push(e.mid)}MOVE[e.mid].hi=Math.max(MOVE[e.mid].hi,e.max)}));
 const DAYNAMES=['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+const ACCENTS=[['blue','Mavi','#2a78d6'],['orange','Turuncu','#eb6834'],['aqua','Turkuaz','#1baf7a'],['green','Yeşil','#008300'],['violet','Mor','#4a3aa7'],['red','Kırmızı','#e34948']];
+const ACCENT_KEYS=ACCENTS.map(a=>a[0]);
 const MON=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
 
 /* ============================== HELPERS ============================== */
@@ -392,7 +420,7 @@ const debounce=(f,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>f(
 /* ============================== STATE ============================== */
 const KEY='ozanfit.v1';
 let memOnly=false;
-function defaults(){return{v:1,profile:{ad:'Ozan',boy:177,kilo:87,yas:24,start:'2026-09-28',akt:1.5,hedef:'recomp'},logs:{},body:[],uyum:{},theme:'auto',seen:false,intro:0,lastBackup:null,snooze:null,demo:false,backup:null}}
+function defaults(){return{v:1,profile:{ad:'Ozan',boy:177,kilo:87,yas:24,start:'2026-09-28',akt:1.5,hedef:'recomp'},logs:{},body:[],uyum:{},theme:'auto',accent:'blue',accentAsked:false,seen:false,intro:0,lastBackup:null,snooze:null,demo:false,backup:null}}
 function storageOK(){try{const k='__t';localStorage.setItem(k,'1');localStorage.removeItem(k);return true}catch(e){return false}}
 let loadErr=false;
 const validDate=x=>{if(typeof x!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(x))return false;const d=parseD(x);return !isNaN(d)&&iso(d)===x};
@@ -415,6 +443,8 @@ function sanitize(o){
   const U=o.uyum&&typeof o.uyum==='object'&&!Array.isArray(o.uyum)?o.uyum:{};o.uyum={};
   Object.keys(U).forEach(w=>{const wi=parseInt(w,10),u=U[w];if(wi>=1&&wi<=12&&u&&typeof u==='object'){const r={};['p','s','u','k'].forEach(k=>{const v=parseInt(u[k],10);if(isFinite(v))r[k]=clamp(v,0,7)});o.uyum[wi]=r}});
   if(typeof o.theme!=='string'||['auto','light','dark'].indexOf(o.theme)<0)o.theme='auto';
+  o.accent=typeof o.accent==='string'&&ACCENT_KEYS.indexOf(o.accent)>=0?o.accent:'blue';
+  o.accentAsked=!!o.accentAsked;
   return o;
 }
 function load(){
@@ -1028,7 +1058,7 @@ const TOUR=[
  {tab:'gelisim',hl:'[data-tab=gelisim]',t:'Gelişim · grafiklerin',x:['Güç grafiği, haftalık hacim, antrenman günü ve rekorların burada.','İlk antrenmanı kaydedince grafikler kendiliğinden dolar.','Alttaki <b>Rapor gönder</b> düğmesi ilerlemeni Enes\'e mail olarak yollar.']},
  {tab:'program',hl:'[data-tab=program]',t:'Program · 12 hafta',x:['12 haftalık yol haritası: hangi hafta ne yapılacak (yükleme, deload).','Haftalık plan: her günün hareketleri ve alternatifleri.','Sözlükte RIR, deload gibi terimler anlatılıyor.']},
  {tab:'vucut',hl:'[data-tab=vucut]',t:'Vücut · ölçü ve beslenme',x:['Haftada bir sabah aç karnına tartıl ve ölç: kilo, bel, kol.','<b>Beslenme:</b> günlük protein, kalori ve su hedefin.','<b>Takviye:</b> doz ve zaman rehberi.']},
- {tab:'bugun',hl:'#btnSet',t:'Ayarlar ve yardım',x:['Sağ üstteki ayarlardan bilgilerini, temayı ve yedeği yönetirsin.','<b>?</b> düğmesi bu turu istediğin zaman tekrar açar.','iPhone: Safari → Paylaş → <b>Ana Ekrana Ekle</b> ile uygulama gibi kullan.']}
+ {tab:'bugun',hl:'#btnSet',t:'Ayarlar ve yardım',x:['Sağ üstteki ayarlardan bilgilerini, temayı ve yedeği yönetirsin.','<b>?</b> düğmesi bu turu istediğin zaman tekrar açar.','iPhone: Safari → Paylaş → <b>Ana Ekrana Ekle</b> ile uygulama gibi kullan; çevrimdışıyken de açılır.','Bu uygulama bu telefona özel: her arkadaşının verisi kendi telefonunda ayrı saklanır, birbirine karışmaz.']}
 ];
 function tourHide(){const t=$('#tour');t.hidden=true;t.innerHTML='';$$('.hl').forEach(x=>x.classList.remove('hl'))}
 function tourStart(){
@@ -1055,6 +1085,10 @@ function tourGo(i){
     +'<button class="btn sm" data-act="tourgo" data-i="'+(i+1)+'">'+(last?'Bitir':'İleri')+'</button></div></div></div>';
 }
 function tourEnd(){tourHide();ui.tab='bugun';render();window.scrollTo(0,0)}
+function accentSwatches(){return ACCENTS.map(a=>'<button class="sw" data-act="accent" data-c="'+a[0]+'" aria-pressed="'+(S.accent===a[0])+'" style="--sw:'+a[2]+'" aria-label="'+a[1]+'"></button>').join('')}
+function accentDlg(){
+  openDlg('<h2>Rengini seç 🎨</h2><p class="sub">Uygulamanın vurgu rengi. İstediğin zaman Ayarlar\'dan değiştirebilirsin.</p><div class="swrow">'+accentSwatches()+'</div><div class="acts"><button class="btn" data-act="accentok">Devam</button></div>');
+}
 function settings(){
   if(RO){openDlg('<h2>Antrenör görünümü</h2><p class="sub">'+esc(S.profile.ad||'')+' adlı kullanıcının raporunu görüntülüyorsun. Bu ekranda değişiklik yapılamaz.</p><div class="acts"><button class="btn ghost" data-act="closedlg">Kapat</button><button class="btn" data-act="exitcoach">Görünümden çık</button></div>');return}
   const p=S.profile;
@@ -1070,8 +1104,9 @@ function settings(){
     <div class="fld full"><label for="s_akt">Aktivite düzeyi</label><select id="s_akt">${aopt}</select></div>
     <div class="fld full"><label for="s_hedef">Hedef</label><select id="s_hedef">${gopt}</select></div>
     <div class="fld full"><label for="s_tema">Tema</label><select id="s_tema">${[['auto','Otomatik'],['light','Açık'],['dark','Koyu']].map(t=>`<option value="${t[0]}"${S.theme===t[0]?' selected':''}>${t[1]}</option>`).join('')}</select></div>
+    <div class="fld full"><label>Arayüz rengi</label><div class="swrow">${accentSwatches()}</div></div>
    </div>
-   <div class="acts" style="justify-content:space-between"><button class="btn line sm" data-act="share">Antrenöre gönder</button><button class="btn line sm" data-act="tourgo" data-i="0">Tanıtımı göster</button><button class="btn line sm" data-act="opencoach">Antrenör görünümü</button><button class="btn line sm" data-act="pastecoach">Rapor yapıştır</button>${lastReport()?'<button class="btn line sm" data-act="lastcoach">Son raporu aç</button>':''}</div>
+   <div class="acts" style="justify-content:space-between"><button class="btn line sm" data-act="share">Antrenöre gönder</button><button class="btn line sm" data-act="tourgo" data-i="0">Tanıtımı göster</button><button class="btn line sm" data-act="opencoach">Antrenör görünümü</button><button class="btn line sm" data-act="pastecoach">Rapor yapıştır</button>${lastReport()?'<button class="btn line sm" data-act="lastcoach">Son raporu aç</button>':''}${deferredInstall?'<button class="btn line sm" data-act="installpwa">Uygulamayı yükle</button>':''}</div>
    <input type="file" id="coachf" accept="application/json,.json" hidden>
    <div class="acts" style="justify-content:space-between"><button class="btn line sm" data-act="export">Yedeği indir</button><button class="btn line sm" data-act="import">Yedeği yükle</button><button class="btn line sm" data-act="${S.demo?'rmdemo':'demo'}">${S.demo?'Örnek veriyi kaldır':'Örnek veri yükle'}</button></div>
    <input type="file" id="impf" accept="application/json,.json" hidden>
@@ -1082,6 +1117,7 @@ function applyTheme(){
   const r=document.documentElement;
   if(S.theme==='light'||S.theme==='dark')r.setAttribute('data-theme',S.theme);else r.removeAttribute('data-theme');
 }
+function applyAccent(){document.documentElement.setAttribute('data-accent',S.accent||'blue')}
 
 /* ============================== DEMO / BACKUP ============================== */
 function monday(s){return addDays(s,-wdOf(s))}
@@ -1139,7 +1175,7 @@ function importData(file){
       const o=JSON.parse(fr.result);
       if(!o||typeof o.logs!=='object'||!o.profile)throw 0;
       if(!confirm('Bu yedek şu anki tüm kayıtların yerine geçecek. Devam edilsin mi?'))return;
-      S=sanitize(Object.assign(defaults(),o,{profile:Object.assign(defaults().profile,o.profile)}));save();applyTheme();renderBanner();closeDlg();render();
+      S=sanitize(Object.assign(defaults(),o,{profile:Object.assign(defaults().profile,o.profile)}));save();applyTheme();applyAccent();renderBanner();closeDlg();render();
     }catch(e){alert('Bu dosya geçerli bir Enes FitApp yedeği değil.')}
   };
   fr.readAsText(file);
@@ -1147,7 +1183,7 @@ function importData(file){
 
 
 /* ============================== ANTRENÖR / RAPOR ============================== */
-const MUT=new Set(['fill','savebody','delbody','uy','demo','rmdemo','saveset','reset','import','closewelcome','tourgo','sendmail','pastecoach','openpaste','snooze']);
+const MUT=new Set(['fill','savebody','delbody','uy','demo','rmdemo','saveset','reset','import','closewelcome','tourgo','sendmail','pastecoach','openpaste','snooze','accent','accentok','installpwa']);
 const normalize=o=>sanitize(Object.assign(defaults(),o,{profile:Object.assign(defaults().profile,o.profile||{}),demo:false,backup:null}));
 function logStatus(l){
   const ex=SLOT[l.slot],c=cs(l);if(!ex||!c.length)return null;
@@ -1237,7 +1273,7 @@ function enterCoach(o){
 function exitCoach(){
   if(!RO)return;
   S=SAVED;SAVED=null;RO=false;REPORT=null;ui.tab='bugun';ui.chart=null;ui.uyumW=null;ui.roadW=null;
-  closeDlg();applyTheme();renderBanner();render();
+  closeDlg();applyTheme();applyAccent();renderBanner();render();
 }
 function openReport(file){
   const fr=new FileReader();
@@ -1322,6 +1358,9 @@ document.addEventListener('click',e=>{
     case 'closewelcome':case 'tourskip':closeDlg();tourEnd();break;
     case 'tourgo':tourGo(+t.dataset.i);break;
     case 'sendmail':sendMail();break;
+    case 'accent':S.accent=t.dataset.c;save();applyAccent();if($('#dlg [data-act=accentok]'))accentDlg();else settings();break;
+    case 'accentok':S.accentAsked=true;save();closeDlg();if(!RO&&S.intro!==INTRO_V)tourStart();break;
+    case 'installpwa':if(deferredInstall){deferredInstall.prompt();deferredInstall.userChoice.finally(()=>{deferredInstall=null})}break;
     case 'snooze':S.snooze=new Date(Date.now()+3*864e5).toISOString();save();renderBanner();break;
     case 'pastecoach':openDlg('<h2>Rapor yapıştır</h2><p class="sub">Mail ya da mesajla gelen rapor dosyasının içeriğini buraya yapıştır.</p><div class="fld full"><label for="pasta">Rapor metni</label><textarea id="pasta" style="height:140px" placeholder="{...}"></textarea></div><div class="acts"><button class="btn ghost" data-act="closedlg">Vazgeç</button><button class="btn" data-act="openpaste">Görüntüle</button></div>');break;
     case 'openpaste':{try{const o=JSON.parse($('#pasta').value);enterCoach(o.kind==='ozanfit-rapor'?o:{data:o})}catch(e){alert('Bu metin geçerli bir Enes FitApp raporu değil.')}break}
@@ -1329,9 +1368,9 @@ document.addEventListener('click',e=>{
       const p=S.profile,g=id=>$('#s_'+id).value;
       const rg=(v,a,b,d)=>{v=num(v);return v!=null&&v>=a&&v<=b?v:d};p.ad=g('ad').trim().slice(0,30)||'Ozan';p.boy=rg(g('boy'),100,250,p.boy);p.kilo=rg(g('kilo'),30,300,p.kilo);p.yas=rg(g('yas'),10,100,p.yas);
       p.start=validDate(g('start'))?g('start'):p.start;p.akt=+g('akt');p.hedef=g('hedef');S.theme=g('tema');
-      save();applyTheme();closeDlg();ui.date=todayISO();ui.day=undefined;render();break;
+      save();applyTheme();applyAccent();closeDlg();ui.date=todayISO();ui.day=undefined;render();break;
     }
-    case 'reset':if(confirm('Tüm kayıtların silinecek. Bu geri alınamaz. Emin misin?')){S=defaults();S.seen=true;S.intro=INTRO_V;save();applyTheme();renderBanner();closeDlg();ui.chart=null;render()}break;
+    case 'reset':if(confirm('Tüm kayıtların silinecek. Bu geri alınamaz. Emin misin?')){S=defaults();S.seen=true;S.intro=INTRO_V;S.accentAsked=true;save();applyTheme();applyAccent();renderBanner();closeDlg();ui.chart=null;render()}break;
   }
 });
 document.addEventListener('change',e=>{
@@ -1374,10 +1413,13 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dlg.open)closeDlg()
 $('#btnHelp').addEventListener('click',()=>{if(!RO)tourGo(0)});
 
 /* ============================== INIT ============================== */
-applyTheme();renderBanner();render();
+applyTheme();applyAccent();renderBanner();render();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-if(!RO&&S.intro!==INTRO_V)tourStart();
-window.__ozan={S:()=>S,setS:o=>{S=o},sanitize,validDate,loadErr:()=>loadErr,wdOf,addDays,dnum,fnum,fint,num,iso,parseD,todayISO,markBackup,exportData,reportPayload,ui,render,suggest,progress,allSeries,loadDemo,PROGRAM:DAYS,nutri,weekly,weekOf,phaseOf,statusOf,e1rm,roundTo,setsFor,derive,weightTrend,trendMsg,insights,summaryText,enterCoach,exitCoach,uyumScore,prsOf,bodySeries,RO:()=>RO,SLOT,GOALS};
+if(!RO&&!S.accentAsked)accentDlg();else if(!RO&&S.intro!==INTRO_V)tourStart();
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
+}
+window.__ozan={S:()=>S,setS:o=>{S=o},applyAccent,ACCENTS,sanitize,validDate,loadErr:()=>loadErr,wdOf,addDays,dnum,fnum,fint,num,iso,parseD,todayISO,markBackup,exportData,reportPayload,ui,render,suggest,progress,allSeries,loadDemo,PROGRAM:DAYS,nutri,weekly,weekOf,phaseOf,statusOf,e1rm,roundTo,setsFor,derive,weightTrend,trendMsg,insights,summaryText,enterCoach,exitCoach,uyumScore,prsOf,bodySeries,RO:()=>RO,SLOT,GOALS};
 </script>
 </body>
 </html>
