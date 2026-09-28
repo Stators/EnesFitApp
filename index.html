@@ -431,7 +431,7 @@ const debounce=(f,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>f(
 /* ============================== STATE ============================== */
 const KEY='ozanfit.v1';
 let memOnly=false;
-function defaults(){return{v:1,profile:{ad:'Ozan',boy:177,kilo:87,yas:24,start:'2026-09-28',akt:1.5,hedef:'recomp'},logs:{},body:[],uyum:{},theme:'auto',accent:'blue',accentAsked:false,seen:false,intro:0,lastBackup:null,snooze:null,demo:false,backup:null}}
+function defaults(){return{v:1,profile:{ad:'',boy:null,kilo:null,yas:null,start:todayISO(),akt:1.5,hedef:'recomp'},logs:{},body:[],uyum:{},theme:'auto',accent:'blue',accentAsked:false,profileSet:false,seen:false,intro:0,lastBackup:null,snooze:null,demo:false,backup:null}}
 function storageOK(){try{const k='__t';localStorage.setItem(k,'1');localStorage.removeItem(k);return true}catch(e){return false}}
 let loadErr=false;
 const validDate=x=>{if(typeof x!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(x))return false;const d=parseD(x);return !isNaN(d)&&iso(d)===x};
@@ -456,6 +456,7 @@ function sanitize(o){
   if(typeof o.theme!=='string'||['auto','light','dark'].indexOf(o.theme)<0)o.theme='auto';
   o.accent=typeof o.accent==='string'&&ACCENT_KEYS.indexOf(o.accent)>=0?o.accent:'blue';
   o.accentAsked=!!o.accentAsked;
+  o.profileSet=!!o.profileSet;
   return o;
 }
 function load(){
@@ -463,7 +464,7 @@ function load(){
   let raw=null;
   try{raw=localStorage.getItem(KEY)}catch(e){memOnly=true;return defaults()}
   if(raw){
-    try{const o=JSON.parse(raw);if(!o||typeof o!=='object'||Array.isArray(o))throw new Error('bad');return sanitize(Object.assign(defaults(),o,{profile:Object.assign(defaults().profile,o.profile||{})}))}
+    try{const o=JSON.parse(raw);if(!o||typeof o!=='object'||Array.isArray(o))throw new Error('bad');return sanitize(Object.assign(defaults(),{profileSet:true},o,{profile:Object.assign(defaults().profile,o.profile||{})}))}
     catch(e){loadErr=true;try{localStorage.setItem('ozanfit.corrupt',raw)}catch(e2){}}
   }
   return defaults();
@@ -825,7 +826,7 @@ V.gelisim=()=>{
    <div class="card"><h2>Haftalık hacim</h2><p class="sub">Toplam kaldırılan ağırlık (kg × tekrar)</p><div class="chart" id="cVol"></div></div>
    <div class="card"><h2>Haftalık antrenman günü</h2><p class="sub">Çizgi: haftalık hedef (5 gün)</p><div class="chart" id="cDays"></div></div>
    ${prs.length?`<div class="card"><h2>Son rekorlar</h2><div class="list" style="margin-top:6px">${prs.slice(0,5).map(p=>`<div class="li"><div><b>${esc(p.name)}</b><small>${fdate(p.d)}</small></div><span class="badge">${fnum(p.from)} → ${fnum(p.to)} ${p.bw?'tekrar':'kg'}</span></div>`).join('')}</div></div>`:''}
-   ${RO?'':'<div class="card"><h2>Antrenörünle paylaş</h2><p class="sub">Özetin ve tüm kayıtların Enes’e mail olarak gider.</p><button class="btn" style="margin-top:10px" data-act="share">Rapor gönder</button></div>'}
+   ${RO?'':'<div class="card"><h2>Antrenörünle paylaş</h2><p class="sub">Özetini ve grafiklerini PDF olarak oluştur, WhatsApp ya da Mail\'den kendin gönder.</p><button class="btn" style="margin-top:10px" data-act="share">Rapor gönder</button></div>'}
   </div>`;
 };
 function drawGelisim(){
@@ -1066,7 +1067,7 @@ Her antrenmanda Bugün sekmesini aç, her sette sadece tekrar sayısını yaz. K
 Haftada bir sabah aç karnına tartıl, ölçülerini Vücut sekmesine gir. Yemek konusunda kasmıyoruz: annenin yemeği devam ama kontrollü, sadece proteini tutturmaya çalış 💪`;
 const TOUR=[
  {tab:'bugun',hl:'[data-tab=bugun]',t:'Bugün · antrenmanın',x:['Günün antrenmanı burada açılır. Gün kendiliğinden seçilir.','Her sette sadece <b>tekrar sayısını</b> yaz. Kilo, geçen seansına göre hazır gelir.','Setler bitince uygulama <b>ARTIR / DEVAM / ZORLANDI</b> der ve sonraki kiloyu söyler. Dinlenme sayacı kendiliğinden başlar.','▶ simgesi, hareketin nasıl yapıldığını gösteren videoyu açar.']},
- {tab:'gelisim',hl:'[data-tab=gelisim]',t:'Gelişim · grafiklerin',x:['Güç grafiği, haftalık hacim, antrenman günü ve rekorların burada.','İlk antrenmanı kaydedince grafikler kendiliğinden dolar.','Alttaki <b>Rapor gönder</b> düğmesi ilerlemeni Enes\'e mail olarak yollar.']},
+ {tab:'gelisim',hl:'[data-tab=gelisim]',t:'Gelişim · grafiklerin',x:['Güç grafiği, haftalık hacim, antrenman günü ve rekorların burada.','İlk antrenmanı kaydedince grafikler kendiliğinden dolar.','Alttaki <b>Rapor gönder</b> düğmesi ilerlemenin PDF\'ini oluşturur, WhatsApp ya da Mail\'den kendin gönderirsin.']},
  {tab:'program',hl:'[data-tab=program]',t:'Program · 12 hafta',x:['12 haftalık yol haritası: hangi hafta ne yapılacak (yükleme, deload).','Haftalık plan: her günün hareketleri ve alternatifleri.','Sözlükte RIR, deload gibi terimler anlatılıyor.']},
  {tab:'vucut',hl:'[data-tab=vucut]',t:'Vücut · ölçü ve beslenme',x:['Haftada bir sabah aç karnına tartıl ve ölç: kilo, bel, kol.','<b>Beslenme:</b> günlük protein, kalori ve su hedefin.','<b>Takviye:</b> doz ve zaman rehberi.']},
  {tab:'bugun',hl:'#btnSet',t:'Ayarlar ve yardım',x:['Sağ üstteki ayarlardan bilgilerini, temayı ve yedeği yönetirsin.','<b>?</b> düğmesi bu turu istediğin zaman tekrar açar.','iPhone: Safari → Paylaş → <b>Ana Ekrana Ekle</b> ile uygulama gibi kullan; çevrimdışıyken de açılır.','Bu uygulama bu telefona özel: her arkadaşının verisi kendi telefonunda ayrı saklanır, birbirine karışmaz.']}
@@ -1097,6 +1098,23 @@ function tourGo(i){
 }
 function tourEnd(){tourHide();ui.tab='bugun';render();window.scrollTo(0,0)}
 function accentSwatches(){return ACCENTS.map(a=>'<button class="sw" data-act="accent" data-c="'+a[0]+'" aria-pressed="'+(S.accent===a[0])+'" style="--sw:'+a[2]+'" aria-label="'+a[1]+'"></button>').join('')}
+function afterProfile(){if(!RO&&!S.accentAsked)accentDlg();else if(!RO&&S.intro!==INTRO_V)tourStart()}
+function profileDlg(){
+  const p=S.profile;
+  const aopt=[[1.2,'Hareketsiz (1,2)'],[1.375,'Hafif aktif (1,375)'],[1.5,'Masa başı iş + haftada 5 antrenman (1,5)'],[1.55,'Orta aktif (1,55)'],[1.725,'Çok aktif (1,725)']].map(a=>`<option value="${a[0]}"${+p.akt===a[0]?' selected':''}>${a[1]}</option>`).join('');
+  const gopt=Object.entries(GOALS).map(([k,v])=>`<option value="${k}"${p.hedef===k?' selected':''}>${v[0]}</option>`).join('');
+  openDlg(`<h2>Önce seni tanıyalım 👋</h2><p class="sub">Bu bilgiler sadece bu telefonda saklanır; programı ve hedeflerini sana göre ayarlamak için gerekli.</p>
+   <div class="fgrid">
+    <div class="fld"><label for="p_ad">Ad</label><input id="p_ad" maxlength="30" placeholder="Adın" value="${esc(p.ad||'')}"></div>
+    <div class="fld"><label for="p_boy">Boy (cm)</label><input id="p_boy" inputmode="decimal" placeholder="ör. 178" value="${p.boy!=null?p.boy:''}"></div>
+    <div class="fld"><label for="p_kilo">Kilo (kg)</label><input id="p_kilo" inputmode="decimal" placeholder="ör. 80" value="${p.kilo!=null?p.kilo:''}"></div>
+    <div class="fld"><label for="p_yas">Yaş</label><input id="p_yas" inputmode="numeric" placeholder="ör. 25" value="${p.yas!=null?p.yas:''}"></div>
+    <div class="fld full"><label for="p_start">Programa başlama tarihi (Pazartesi olsun)</label><input id="p_start" type="date" value="${validDate(p.start)?p.start:monday(todayISO())}"></div>
+    <div class="fld full"><label for="p_akt">Aktivite düzeyi</label><select id="p_akt">${aopt}</select></div>
+    <div class="fld full"><label for="p_hedef">Hedef</label><select id="p_hedef">${gopt}</select></div>
+   </div>
+   <div class="acts"><button class="btn" data-act="saveprofile">Kaydet ve başla</button></div>`);
+}
 function accentDlg(){
   openDlg('<h2>Rengini seç 🎨</h2><p class="sub">Uygulamanın vurgu rengi. İstediğin zaman Ayarlar\'dan değiştirebilirsin.</p><div class="swrow">'+accentSwatches()+'</div><div class="acts"><button class="btn" data-act="accentok">Devam</button></div>');
 }
@@ -1186,7 +1204,7 @@ function importData(file){
       const o=JSON.parse(fr.result);
       if(!o||typeof o.logs!=='object'||!o.profile)throw 0;
       if(!confirm('Bu yedek şu anki tüm kayıtların yerine geçecek. Devam edilsin mi?'))return;
-      S=sanitize(Object.assign(defaults(),o,{profile:Object.assign(defaults().profile,o.profile)}));save();applyTheme();applyAccent();renderBanner();closeDlg();render();
+      S=sanitize(Object.assign(defaults(),{profileSet:true},o,{profile:Object.assign(defaults().profile,o.profile)}));save();applyTheme();applyAccent();renderBanner();closeDlg();render();
     }catch(e){alert('Bu dosya geçerli bir Enes FitApp yedeği değil.')}
   };
   fr.readAsText(file);
@@ -1194,7 +1212,7 @@ function importData(file){
 
 
 /* ============================== ANTRENÖR / RAPOR ============================== */
-const MUT=new Set(['fill','savebody','delbody','uy','demo','rmdemo','saveset','reset','import','closewelcome','tourgo','pdfreport','pastecoach','openpaste','snooze','accent','accentok','installpwa']);
+const MUT=new Set(['fill','savebody','delbody','uy','demo','rmdemo','saveset','saveprofile','reset','import','closewelcome','tourgo','pdfreport','pastecoach','openpaste','snooze','accent','accentok','installpwa']);
 const normalize=o=>sanitize(Object.assign(defaults(),o,{profile:Object.assign(defaults().profile,o.profile||{}),demo:false,backup:null}));
 function logStatus(l){
   const ex=SLOT[l.slot],c=cs(l);if(!ex||!c.length)return null;
@@ -1371,6 +1389,16 @@ document.addEventListener('click',e=>{
     case 'snooze':S.snooze=new Date(Date.now()+3*864e5).toISOString();save();renderBanner();break;
     case 'pastecoach':openDlg('<h2>Rapor yapıştır</h2><p class="sub">Mail ya da mesajla gelen rapor dosyasının içeriğini buraya yapıştır.</p><div class="fld full"><label for="pasta">Rapor metni</label><textarea id="pasta" style="height:140px" placeholder="{...}"></textarea></div><div class="acts"><button class="btn ghost" data-act="closedlg">Vazgeç</button><button class="btn" data-act="openpaste">Görüntüle</button></div>');break;
     case 'openpaste':{try{const o=JSON.parse($('#pasta').value);enterCoach(o.kind==='ozanfit-rapor'?o:{data:o})}catch(e){alert('Bu metin geçerli bir Enes FitApp raporu değil.')}break}
+    case 'saveprofile':{
+      const g=id=>$('#p_'+id).value,ad=g('ad').trim(),boy=num(g('boy')),kilo=num(g('kilo')),yas=num(g('yas'));
+      if(!ad){alert('Adını gir.');return}
+      if(boy==null||boy<100||boy>250){alert('Boy 100-250 cm arasında olmalı.');return}
+      if(kilo==null||kilo<30||kilo>300){alert('Kilo 30-300 kg arasında olmalı.');return}
+      if(yas==null||yas<10||yas>100){alert('Yaş 10-100 arasında olmalı.');return}
+      const p=S.profile;p.ad=ad.slice(0,30);p.boy=boy;p.kilo=kilo;p.yas=yas;
+      p.start=validDate(g('start'))?g('start'):todayISO();p.akt=+g('akt');p.hedef=g('hedef');
+      S.profileSet=true;save();closeDlg();afterProfile();break;
+    }
     case 'saveset':{
       const p=S.profile,g=id=>$('#s_'+id).value;
       const rg=(v,a,b,d)=>{v=num(v);return v!=null&&v>=a&&v<=b?v:d};p.ad=g('ad').trim().slice(0,30)||'Ozan';p.boy=rg(g('boy'),100,250,p.boy);p.kilo=rg(g('kilo'),30,300,p.kilo);p.yas=rg(g('yas'),10,100,p.yas);
@@ -1422,7 +1450,7 @@ $('#btnHelp').addEventListener('click',()=>{if(!RO)tourGo(0)});
 /* ============================== INIT ============================== */
 applyTheme();applyAccent();renderBanner();render();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-if(!RO&&!S.accentAsked)accentDlg();else if(!RO&&S.intro!==INTRO_V)tourStart();
+if(!RO&&!S.profileSet)profileDlg();else afterProfile();
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
 }
