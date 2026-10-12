@@ -233,6 +233,13 @@ details.acc .body{padding:0 0 12px}
 .fld textarea{height:64px;padding:10px 12px;resize:vertical}
 .fld input:focus,.fld select:focus,.fld textarea:focus{outline:2px solid var(--s1);outline-offset:1px;border-color:transparent}
 .fld.full{grid-column:1/-1}
+.catlist{max-height:42vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:14px}
+.catrow{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:10px 12px}
+.catrow:first-child{border-top:0}
+.catrow:active{background:var(--surface2)}
+.catrow b{display:block;font-size:14.5px}
+.catrow small{color:var(--muted);font-size:12.5px}
+.catrow[hidden]{display:none}
 .stepper{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
 .stepper:first-of-type{border-top:0}
 .stepper .c{display:flex;align-items:center;gap:6px}
@@ -404,8 +411,120 @@ const DAYS=[
  ]}
 ];
 const DAY_BY_WD=['pzt','sal','crs','prs','cum','cmt',null];
+/* DAYS fabrika verisi: kullanıcı hareket ekleyip çıkarınca d.ex bu snapshot'tan yeniden kurulur */
+const FACTORY_EX={};DAYS.forEach(d=>FACTORY_EX[d.id]=d.ex.slice());
+const FACTORY_SLOT={};DAYS.forEach(d=>d.ex.forEach(e=>FACTORY_SLOT[e.slot]=e));
 const SLOT={},MOVE={},MID_ORDER=[];
-DAYS.forEach(d=>d.ex.forEach(e=>{e.day=d;SLOT[e.slot]=e;if(!MOVE[e.mid]){MOVE[e.mid]={ad:e.mad||e.ad,hi:0};MID_ORDER.push(e.mid)}MOVE[e.mid].hi=Math.max(MOVE[e.mid].hi,e.max)}));
+function addIndexEntry(e){SLOT[e.slot]=e;if(!MOVE[e.mid]){MOVE[e.mid]={ad:e.mad||e.ad,hi:0};MID_ORDER.push(e.mid)}MOVE[e.mid].hi=Math.max(MOVE[e.mid].hi,e.max)}
+function exFromRecord(r){return E(r.slot,r.mid,r.ad,r.sets,r.min,r.max,r.rest,r.not,r.step,r.base,r.alts,r.tip,r.bw?{bw:true}:undefined)}
+function rebuildIndex(program){
+  for(const k in SLOT)delete SLOT[k];
+  for(const k in MOVE)delete MOVE[k];
+  MID_ORDER.length=0;
+  DAYS.forEach(d=>d.ex.forEach(e=>{e.day=d;addIndexEntry(e)}));
+  // çıkarılan hareketlerin slot/mid'i tamamen yok olmasın: sanitize() SLOT'ta olmayan
+  // slotların loglarını siler, allSeries()/viewKayit() de null kontrolsüz SLOT/MOVE okur.
+  Object.keys(FACTORY_SLOT).forEach(s=>{if(!SLOT[s])addIndexEntry(FACTORY_SLOT[s])});
+  Object.values(program||{}).forEach(diff=>(diff.retired||[]).forEach(r=>{if(!SLOT[r.slot])addIndexEntry(exFromRecord(r))}));
+}
+function applyProgram(program){
+  DAYS.forEach(d=>{
+    const diff=(program&&program[d.id])||{},rm=new Set(diff.removed||[]);
+    const ex=FACTORY_EX[d.id].filter(e=>!rm.has(e.slot)).slice();
+    (diff.added||[]).forEach(r=>ex.push(exFromRecord(r)));
+    d.ex=ex;
+  });
+  rebuildIndex(program);
+}
+applyProgram(null);
+/* ---------- HAREKET KATALOĞU (kullanıcı güne ekleyebileceği hareketler) ---------- */
+const EXCATS=[['gogus','Göğüs'],['sirt','Sırt'],['bacak','Bacak'],['omuz','Omuz'],['kol','Kol'],['karin','Karın'],['kardiyo','Kardiyo'],['diger','Diğer']];
+const CATALOG=[
+ // Göğüs
+ {id:'bench-press',mid:'bench',ad:'Bench Press',cat:'gogus',sets:4,min:6,max:8,rest:'2-3 dk',step:2.5,base:40,alts:['Smith Bench Press','Chest Press (makine)'],tip:'Kürek kemiklerini sık, bar göğse değsin ama zıplatma.',not:'RIR 1-2'},
+ {id:'incline-db-press',mid:'incline',ad:'Incline Dumbbell Press',cat:'gogus',sets:3,min:8,max:10,rest:'2 dk',step:2,base:20,alts:['Incline Smith Press'],tip:'Sehpa 30°.',not:'RIR 1-2'},
+ {id:'incline-bb-press',mid:'inclinebb',ad:'Incline Barbell Press',cat:'gogus',sets:4,min:6,max:8,rest:'2-3 dk',step:2.5,base:30,alts:['Incline Dumbbell Press','Incline Smith Press'],tip:'Sehpa 30°, bar göğüs üstüne değsin.',not:'RIR 1-2'},
+ {id:'decline-press',mid:'declinebench',ad:'Decline Bench Press',cat:'gogus',sets:3,min:8,max:10,rest:'2 dk',step:2.5,base:35,alts:['Decline Smith Press'],tip:'Alt göğüs için; ayaklar sabit kalsın.',not:'RIR 1-2'},
+ {id:'db-flat-press',mid:'dbflatpress',ad:'Dumbbell Bench Press',cat:'gogus',sets:3,min:8,max:10,rest:'2 dk',step:2,base:24,alts:['Chest Press (makine)'],tip:'Dirsekler ~45°, dambılları kontrollü indir.',not:'RIR 1-2'},
+ {id:'dips',mid:'dips',ad:'Dips',cat:'gogus',sets:3,min:8,max:12,rest:'2 dk',step:2.5,base:0,bw:true,alts:['Chest Press (makine)'],tip:'Gövdeyi öne yatırırsan göğüs ağırlıklı çalışır.',not:'RIR 1-2 · Kg = ek ağırlık'},
+ {id:'cable-cross',mid:'cross',ad:'Cable Cross',cat:'gogus',sets:3,min:12,max:15,rest:'90 sn',step:2.5,base:12,alts:['Pec Deck (Butterfly)','Dambıl Fly'],tip:'Eller ortada birleşince 1 sn sık.',not:'Hf 7+ failure'},
+ {id:'pec-deck',mid:'pecdeck',ad:'Pec Deck (Butterfly)',cat:'gogus',sets:3,min:12,max:15,rest:'90 sn',step:2.5,base:30,alts:['Cable Cross','Dambıl Fly'],tip:'Omuzları gevşet, sadece göğüsle sık.',not:'Hf 7+ failure'},
+ {id:'db-fly',mid:'dbfly',ad:'Dumbbell Fly',cat:'gogus',sets:3,min:10,max:12,rest:'90 sn',step:1,base:10,alts:['Pec Deck (Butterfly)'],tip:'Dirsekler hafif bükük, geniş yay çiz.',not:'RIR 1'},
+ {id:'chest-press-m',mid:'chestpress',ad:'Chest Press (makine)',cat:'gogus',sets:3,min:10,max:12,rest:'90 sn',step:2.5,base:40,alts:['Smith Bench Press','Pec Deck (Butterfly)'],tip:'Sırtı koltuğa yapıştır.',not:'RIR 1-2'},
+ {id:'pushup',mid:'pushup',ad:'Push Up (Şınav)',cat:'gogus',sets:3,min:10,max:20,rest:'90 sn',step:0,base:0,bw:true,alts:['Chest Press (makine)'],tip:'Gövdeyi düz tut, göğüs yere yakın insin.',not:'Tekrar yaz, kg boş bırak'},
+ {id:'incline-cable-fly',mid:'inclinecablefly',ad:'Incline Cable Fly',cat:'gogus',sets:3,min:12,max:15,rest:'90 sn',step:1,base:8,alts:['Dumbbell Fly'],tip:'Kabloyu alttan yukarı çek, üst göğsü sık.',not:'Hf 7+ failure'},
+ // Sırt
+ {id:'deadlift',mid:'deadlift',ad:'Deadlift',cat:'sirt',sets:4,min:5,max:8,rest:'3 dk',step:5,base:60,alts:['Romanian Deadlift','Trap Bar Deadlift'],tip:'Sırt düz, kalçadan başlat, bar bacağa yakın kalsın.',not:'RIR 1-2'},
+ {id:'rdl',mid:'rdl',ad:'Romanian Deadlift',cat:'sirt',sets:3,min:8,max:10,rest:'2-3 dk',step:2.5,base:40,alts:['Deadlift'],tip:'Dizler hafif bükük, kalçayı geriye it, sırtı düz tut.',not:'RIR 1-2'},
+ {id:'barbell-row',mid:'row',ad:'Barbell Row',cat:'sirt',sets:4,min:8,max:10,rest:'2 dk',step:2.5,base:50,alts:['Göğüs destekli T-Bar Row','Seated Row (makine)'],tip:'Sırt düz, gövde ~45°.',not:'RIR 1-2 · Hf 7+ son set failure'},
+ {id:'pendlay-row',mid:'pendlayrow',ad:'Pendlay Row',cat:'sirt',sets:4,min:6,max:8,rest:'2 dk',step:2.5,base:45,alts:['Barbell Row'],tip:'Her tekrarda bar yere dokunsun, sırt sabit.',not:'RIR 1-2'},
+ {id:'db-row',mid:'dbrow',ad:'Tek Kol Dumbbell Row',cat:'sirt',sets:3,min:8,max:10,rest:'90 sn',step:2,base:20,alts:['Cable Row'],tip:'Sırtı düz tut, kürek kemiğini sık.',not:'RIR 1'},
+ {id:'tbar-row',mid:'tbarrow',ad:'Göğüs Destekli T-Bar Row',cat:'sirt',sets:3,min:8,max:10,rest:'2 dk',step:2.5,base:30,alts:['Barbell Row','Seated Row (makine)'],tip:'Bel yükü sıfır; göğsü sehpaya yasla.',not:'RIR 1-2'},
+ {id:'seated-row-m',mid:'seatedrowm',ad:'Seated Row (makine)',cat:'sirt',sets:3,min:10,max:12,rest:'90 sn',step:2.5,base:30,alts:['Cable Row'],tip:'Kürek kemiklerini sık, geriye yaslanma.',not:'RIR 1-2'},
+ {id:'lat-pulldown',mid:'lat',ad:'Lat Pulldown',cat:'sirt',sets:4,min:8,max:10,rest:'2 dk',step:2.5,base:55,alts:['Lat Pulldown (makine)','Tek kol kablo pulldown'],tip:'Göğsüne doğru çek, dirseklerle çekiyorum diye düşün.',not:'RIR 1-2 · Hf 7+ son set failure'},
+ {id:'lat-pulldown-v',mid:'latv',ad:'Lat Pulldown (V-bar)',cat:'sirt',sets:4,min:8,max:10,rest:'2 dk',step:2.5,base:50,alts:['Lat Pulldown (makine)'],tip:'Dar tutuş, sırtın alt kısmına yoğunlaşır.',not:'RIR 1-2'},
+ {id:'pullup',mid:'pullup',ad:'Pull Up',cat:'sirt',sets:3,min:5,max:12,rest:'2 dk',step:2.5,base:0,bw:true,alts:['Negatif Pull-up','Lat Pulldown (ağır)'],tip:'Kg = ek ağırlık (vücut ağırlığıysa 0 yaz).',not:'Failure'},
+ {id:'straight-arm-pulldown',mid:'pullover',ad:'Straight-Arm Pulldown',cat:'sirt',sets:3,min:12,max:15,rest:'90 sn',step:2.5,base:20,alts:['Pullover (makine)'],tip:'Kollar neredeyse düz, hareket omuzdan.',not:'Hf 7+ failure'},
+ {id:'cable-row',mid:'crow',ad:'Cable Row',cat:'sirt',sets:3,min:12,max:15,rest:'90 sn',step:2.5,base:45,alts:['Seated Row (makine)','Tek kol dambıl row'],tip:'Göbeğine çek, sonda kürekleri sık.',not:'Hf 7+ failure'},
+ {id:'hyperextension',mid:'hyperext',ad:'Hyperextension (Sırt)',cat:'sirt',sets:3,min:12,max:15,rest:'90 sn',step:0,base:0,bw:true,alts:['Romanian Deadlift'],tip:'Belden değil kalçadan katlan, tepede sırtı sık.',not:'Hf 7+ failure'},
+ // Bacak
+ {id:'squat',mid:'squat',ad:'Squat',cat:'bacak',sets:4,min:8,max:10,rest:'2-3 dk',step:2.5,base:70,alts:['Hack Squat (makine)','Smith Squat'],tip:'En az paralele in, dizler içe çökmesin.',not:'RIR 1-2'},
+ {id:'front-squat',mid:'frontsquat',ad:'Front Squat',cat:'bacak',sets:3,min:6,max:8,rest:'2-3 dk',step:2.5,base:45,alts:['Squat'],tip:'Dirsekleri yukarıda tut, gövdeyi dik.',not:'RIR 1-2'},
+ {id:'leg-press',mid:'legpress',ad:'Leg Press',cat:'bacak',sets:4,min:8,max:10,rest:'2 dk',step:5,base:140,alts:['Hack Squat (makine)','Tek bacak Leg Press'],tip:'Kalçan koltuktan kalkmasın.',not:'RIR 1-2'},
+ {id:'hack-squat',mid:'hacksquat',ad:'Hack Squat (makine)',cat:'bacak',sets:4,min:8,max:10,rest:'2 dk',step:5,base:60,alts:['Leg Press'],tip:'Sırtı sehpaya yasla, dizi kilitleme.',not:'RIR 1-2'},
+ {id:'bulgarian-split',mid:'bulgariansplit',ad:'Bulgarian Split Squat',cat:'bacak',sets:3,min:8,max:12,rest:'2 dk',step:1,base:10,alts:['Walking Lunge'],tip:'Ön diz ayak ucunu geçmesin, gövde dik.',not:'RIR 1 (her bacak)'},
+ {id:'walking-lunge',mid:'lunge',ad:'Walking Lunge',cat:'bacak',sets:3,min:10,max:12,rest:'90 sn',step:1,base:8,alts:['Bulgarian Split Squat'],tip:'Adım uzun at, ön diz 90°.',not:'Hf 7+ failure (her bacak)'},
+ {id:'leg-extension',mid:'legext',ad:'Leg Extension',cat:'bacak',sets:3,min:12,max:15,rest:'60-90 sn',step:2.5,base:40,alts:['Tek bacak Leg Extension'],tip:'Üstte 1 sn tut.',not:'Hf 7+ failure'},
+ {id:'leg-curl-lying',mid:'legcurl',ad:'Leg Curl (yatarak)',cat:'bacak',sets:4,min:12,max:15,rest:'90 sn',step:2.5,base:35,alts:['Leg Curl (oturarak)','Tek bacak Leg Curl'],tip:'Altta tam aç, yukarıda 1 sn sık.',not:'Hf 7+ failure'},
+ {id:'leg-curl-seated',mid:'legcurlseated',ad:'Leg Curl (oturarak)',cat:'bacak',sets:3,min:10,max:12,rest:'90 sn',step:2.5,base:35,alts:['Leg Curl (yatarak)'],tip:'Sırtı dayalı tut, kontrollü indir.',not:'RIR 1-2'},
+ {id:'calf-standing',mid:'calf',ad:'Calf Raise (ayakta)',cat:'bacak',sets:4,min:15,max:20,rest:'60 sn',step:5,base:50,alts:['Calf Raise (oturarak)',"Leg Press'te Calf Raise"],tip:'Altta 1-2 sn tam gerilme, yukarıda sık.',not:'Hf 7+ failure'},
+ {id:'calf-seated',mid:'calfseated',ad:'Calf Raise (oturarak)',cat:'bacak',sets:4,min:15,max:20,rest:'60 sn',step:2.5,base:30,alts:['Calf Raise (ayakta)'],tip:'Baldırı tam germek için altta bekle.',not:'Hf 7+ failure'},
+ {id:'hip-thrust',mid:'hipthrust',ad:'Hip Thrust',cat:'bacak',sets:3,min:8,max:12,rest:'2 dk',step:5,base:40,alts:['Romanian Deadlift'],tip:'Tepede kalçayı sık, çene içte.',not:'RIR 1-2'},
+ // Omuz
+ {id:'ohp-db',mid:'ohp',ad:'Overhead Press (dambıl)',cat:'omuz',sets:3,min:8,max:10,rest:'2 dk',step:2,base:16,alts:['Shoulder Press (makine)','Smith Shoulder Press'],tip:'Oturarak, beli kavislendirme, karnı sık.',not:'RIR 1-2'},
+ {id:'ohp-bar',mid:'ohpbar',ad:'Overhead Press (bar, ayakta)',cat:'omuz',sets:3,min:6,max:8,rest:'2 dk',step:2.5,base:30,alts:['Overhead Press (dambıl)'],tip:'Karın ve kalça sıkı, bar çeneyi sıyırsın.',not:'RIR 1-2'},
+ {id:'shoulder-press-m',mid:'shoulderpressm',ad:'Shoulder Press (makine)',cat:'omuz',sets:3,min:8,max:10,rest:'2 dk',step:2.5,base:25,alts:['Overhead Press (dambıl)'],tip:'Sırtı koltuğa yasla.',not:'RIR 1-2'},
+ {id:'arnold-press',mid:'arnold',ad:'Arnold Press',cat:'omuz',sets:3,min:8,max:10,rest:'2 dk',step:1,base:12,alts:['Overhead Press (dambıl)'],tip:'Aşağıda avuçlar sana dönük, yukarıda dışa.',not:'RIR 1'},
+ {id:'lateral-db',mid:'lateral',ad:'Lateral Raise (dambıl)',cat:'omuz',sets:4,min:12,max:15,rest:'60 sn',step:1,base:6,alts:['Kablo Lateral Raise','Lateral Raise (makine)'],tip:'Dirsekler hafif bükük, omuz hizasına kadar.',not:'Hf 7+ son set drop-set'},
+ {id:'lateral-cable',mid:'lateral-c',ad:'Lateral Raise (kablo)',cat:'omuz',sets:3,min:15,max:20,rest:'60 sn',step:1,base:4,alts:['Lateral Raise (dambıl)','Lateral Raise (makine)'],tip:'Sabit gerilim için kabloyu arkadan geçir.',not:'Failure'},
+ {id:'rear-delt',mid:'rear',ad:'Rear Delt (Reverse Pec Deck)',cat:'omuz',sets:3,min:12,max:15,rest:'60 sn',step:2.5,base:25,alts:['Kablo Rear Delt','Dambıl Rear Delt (eğilerek)'],tip:'Omzunu kulağına çekme, dirseklerle geriye aç.',not:'Hf 7+ beyond failure'},
+ {id:'face-pull',mid:'face',ad:'Face Pull',cat:'omuz',sets:3,min:15,max:20,rest:'60 sn',step:2.5,base:20,alts:['Rear Delt (makine)'],tip:'Duruş ve omuz sağlığı için.',not:'RIR 1'},
+ {id:'upright-row',mid:'uprightrow',ad:'Upright Row',cat:'omuz',sets:3,min:10,max:12,rest:'90 sn',step:2,base:15,alts:['Lateral Raise (dambıl)'],tip:'Dirsekleri bilekten yüksek tut, omuz sıkışmasına dikkat.',not:'RIR 1-2'},
+ {id:'front-raise',mid:'frontraise',ad:'Front Raise',cat:'omuz',sets:3,min:12,max:15,rest:'60 sn',step:1,base:6,alts:['Overhead Press (dambıl)'],tip:'Kontrollü kaldır, sallanma.',not:'Hf 7+ failure'},
+ // Kol
+ {id:'barbell-curl',mid:'bbcurl',ad:'Barbell Curl',cat:'kol',sets:3,min:8,max:10,rest:'90 sn',step:2.5,base:25,alts:['EZ Bar Curl','Curl (makine)'],tip:'Dirsekler sabit, gövdeyle sallama.',not:'RIR 1 · Hf 7+ failure'},
+ {id:'dumbbell-curl',mid:'dbcurl',ad:'Dumbbell Curl',cat:'kol',sets:3,min:8,max:10,rest:'90 sn',step:1,base:10,alts:['Kablo Curl','Incline Dambıl Curl'],tip:'Yukarıda bileği hafif dışa çevir.',not:'RIR 1 · Hf 7+ failure'},
+ {id:'hammer-curl',mid:'hammer',ad:'Hammer Curl',cat:'kol',sets:3,min:8,max:10,rest:'90 sn',step:1,base:12,alts:['Rope Hammer Curl (kablo)'],tip:'Avuç içleri birbirine bakar.',not:'Hf 7+ failure'},
+ {id:'cable-curl',mid:'cablecurl',ad:'Kablo Curl',cat:'kol',sets:3,min:10,max:12,rest:'60 sn',step:2.5,base:20,alts:['Dumbbell Curl','EZ Bar Curl'],tip:'Kontrollü tempo; üstte 1 sn sık.',not:'Failure'},
+ {id:'ez-curl',mid:'ezcurl',ad:'EZ Bar Curl',cat:'kol',sets:3,min:8,max:10,rest:'90 sn',step:2.5,base:20,alts:['Barbell Curl'],tip:'Bilek rahatsa düz bar, değilse EZ bar.',not:'RIR 1'},
+ {id:'incline-db-curl',mid:'inclinecurl',ad:'Incline Dumbbell Curl',cat:'kol',sets:3,min:10,max:12,rest:'90 sn',step:1,base:8,alts:['Dumbbell Curl'],tip:'Sehpa 45-60°, kolu tam ger.',not:'Hf 7+ failure'},
+ {id:'preacher-curl',mid:'preachercurl',ad:'Preacher Curl',cat:'kol',sets:3,min:8,max:10,rest:'90 sn',step:2,base:15,alts:['EZ Bar Curl'],tip:'Kolu sehpaya yasla, sallanma engellenir.',not:'RIR 1'},
+ {id:'triceps-pushdown',mid:'pushdown',ad:'Triceps Pushdown',cat:'kol',sets:4,min:8,max:10,rest:'90 sn',step:2.5,base:25,alts:['Rope Pushdown','Dips (makine)'],tip:'Dirsekler gövdeye yapışık.',not:'Hf 7+ failure'},
+ {id:'oh-triceps-ext',mid:'ohtri',ad:'Overhead Triceps Extension (kablo)',cat:'kol',sets:3,min:10,max:12,rest:'90 sn',step:2.5,base:20,alts:['Dambıl Overhead Extension','Triceps Extension (makine)'],tip:'Kolun uzun başını çalıştırır.',not:'Hf 7+ failure'},
+ {id:'skull-crusher',mid:'skullcrusher',ad:'Skull Crusher',cat:'kol',sets:3,min:8,max:10,rest:'90 sn',step:2,base:15,alts:['Overhead Triceps Extension (kablo)'],tip:'Dirsekler sabit, bar alnın üstüne iner.',not:'RIR 1'},
+ {id:'close-grip-bench',mid:'cgbench',ad:'Close-Grip Bench Press',cat:'kol',sets:3,min:8,max:10,rest:'2 dk',step:2.5,base:30,alts:['Triceps Pushdown'],tip:'Eller göğüs genişliğinde, dirsekler gövdeye yakın.',not:'RIR 1-2'},
+ // Karın
+ {id:'plank',mid:'plank',ad:'Plank',cat:'karin',sets:3,min:30,max:60,rest:'45 sn',step:0,base:0,bw:true,alts:['Side Plank'],tip:'Karnı sık, bel çökmesin.',not:'Süreyi tekrar alanına yaz (sn)'},
+ {id:'side-plank',mid:'sideplank',ad:'Side Plank',cat:'karin',sets:3,min:20,max:40,rest:'45 sn',step:0,base:0,bw:true,alts:['Plank'],tip:'Kalça düşmesin, gövde tek hat.',not:'Süreyi tekrar alanına yaz (sn), her taraf'},
+ {id:'crunch',mid:'crunch',ad:'Mekik (Crunch)',cat:'karin',sets:3,min:15,max:25,rest:'45 sn',step:0,base:0,bw:true,alts:['Cable Crunch'],tip:'Belini yerden kaldırma, sadece üst sırt kalksın.',not:'Failure'},
+ {id:'cable-crunch',mid:'cablecrunch',ad:'Cable Crunch',cat:'karin',sets:3,min:12,max:15,rest:'60 sn',step:2.5,base:15,alts:['Mekik (Crunch)'],tip:'Kalçadan değil karından katlan.',not:'Hf 7+ failure'},
+ {id:'hanging-leg-raise',mid:'hangingraise',ad:'Hanging Leg Raise',cat:'karin',sets:3,min:8,max:15,rest:'90 sn',step:0,base:0,bw:true,alts:['Mekik (Crunch)'],tip:'Sallanmadan kontrollü kaldır.',not:'Failure'},
+ {id:'russian-twist',mid:'russiantwist',ad:'Russian Twist',cat:'karin',sets:3,min:16,max:24,rest:'45 sn',step:0,base:0,bw:true,alts:[],tip:'Ayaklar yerden hafif kalkık, gövdeyle dön.',not:'Toplam tekrar (her iki yön)'},
+ {id:'ab-wheel',mid:'abwheel',ad:'Ab Wheel',cat:'karin',sets:3,min:8,max:12,rest:'90 sn',step:0,base:0,bw:true,alts:['Plank'],tip:'Belini çökertmeden kadar ileri git.',not:'RIR 1'},
+ {id:'mountain-climber',mid:'mountainclimber',ad:'Mountain Climber',cat:'karin',sets:3,min:20,max:30,rest:'45 sn',step:0,base:0,bw:true,alts:[],tip:'Kalça sabit, dizleri hızlı çek.',not:'Toplam tekrar'},
+ // Kardiyo
+ {id:'incline-walk',mid:'cardio-walk',ad:'Eğimli Yürüyüş (Bant)',cat:'kardiyo',sets:1,min:10,max:20,rest:'0',step:0,base:0,bw:true,alts:[],tip:'%10-12 eğim, tempolu.',not:'Dakikayı tekrar alanına yaz'},
+ {id:'treadmill-run',mid:'cardio-run',ad:'Koşu Bandı (Tempo)',cat:'kardiyo',sets:1,min:10,max:20,rest:'0',step:0,base:0,bw:true,alts:['Eğimli Yürüyüş (Bant)'],tip:'Konuşabileceğin tempoda koş.',not:'Dakikayı tekrar alanına yaz'},
+ {id:'stationary-bike',mid:'cardio-bike',ad:'Bisiklet (Sabit)',cat:'kardiyo',sets:1,min:10,max:20,rest:'0',step:0,base:0,bw:true,alts:[],tip:'Orta direnç, sabit kadans.',not:'Dakikayı tekrar alanına yaz'},
+ {id:'elliptical',mid:'cardio-elliptical',ad:'Eliptik',cat:'kardiyo',sets:1,min:10,max:20,rest:'0',step:0,base:0,bw:true,alts:[],tip:'Kolları da kullan, tüm vücut çalışsın.',not:'Dakikayı tekrar alanına yaz'},
+ {id:'jump-rope',mid:'cardio-rope',ad:'İp Atlama',cat:'kardiyo',sets:3,min:1,max:3,rest:'60 sn',step:0,base:0,bw:true,alts:[],tip:'Bilekten zıpla, dizler hafif bükük.',not:'Dakikayı tekrar alanına yaz'},
+ {id:'rowing-machine',mid:'cardio-row',ad:'Rower (Kürek Makinesi)',cat:'kardiyo',sets:1,min:10,max:20,rest:'0',step:0,base:0,bw:true,alts:[],tip:'Bacak-gövde-kol sırasıyla çek.',not:'Dakikayı tekrar alanına yaz'},
+ // Diğer
+ {id:'farmers-walk',mid:'farmerswalk',ad:"Farmer's Walk",cat:'diger',sets:3,min:20,max:40,rest:'90 sn',step:2.5,base:20,alts:[],tip:'Gövdeyi dik tut, omuzları geriye çek.',not:'Metre/adım yaz (tekrar alanına)'},
+ {id:'kb-swing',mid:'kbswing',ad:'Kettlebell Swing',cat:'diger',sets:3,min:12,max:20,rest:'90 sn',step:2,base:12,alts:[],tip:'Kalçadan patlat, kolla kaldırma.',not:'Hf 7+ failure'},
+ {id:'burpee',mid:'burpee',ad:'Burpee',cat:'diger',sets:3,min:8,max:15,rest:'90 sn',step:0,base:0,bw:true,alts:[],tip:'Tam vücut, kontrollü hızlı.',not:'Failure'},
+ {id:'battle-rope',mid:'battlerope',ad:'Battle Rope',cat:'diger',sets:3,min:20,max:30,rest:'60 sn',step:0,base:0,bw:true,alts:[],tip:'Karın sıkı, dalgayı omuzdan üret.',not:'Saniye/tekrar yaz'}
+];
 const DAYNAMES=['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
 const ACCENTS=[['blue','Mavi','#2a78d6'],['orange','Turuncu','#eb6834'],['aqua','Turkuaz','#1baf7a'],['green','Yeşil','#008300'],['violet','Mor','#4a3aa7'],['red','Kırmızı','#e34948']];
 const ACCENT_KEYS=ACCENTS.map(a=>a[0]);
@@ -431,15 +550,56 @@ const debounce=(f,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>f(
 /* ============================== STATE ============================== */
 const KEY='ozanfit.v1';
 let memOnly=false;
-function defaults(){return{v:1,profile:{ad:'',boy:null,kilo:null,yas:null,start:todayISO(),akt:1.5,hedef:'recomp'},logs:{},body:[],uyum:{},theme:'auto',accent:'blue',accentAsked:false,profileSet:false,seen:false,intro:0,lastBackup:null,snooze:null,demo:false,backup:null}}
+function defaults(){return{v:1,profile:{ad:'',boy:null,kilo:null,yas:null,start:todayISO(),akt:1.5,hedef:'recomp'},logs:{},body:[],uyum:{},theme:'auto',accent:'blue',accentAsked:false,profileSet:false,seen:false,intro:0,lastBackup:null,snooze:null,demo:false,backup:null,program:{}}}
 function storageOK(){try{const k='__t';localStorage.setItem(k,'1');localStorage.removeItem(k);return true}catch(e){return false}}
 let loadErr=false;
 const validDate=x=>{if(typeof x!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(x))return false;const d=parseD(x);return !isNaN(d)&&iso(d)===x};
+/* ---------- kullanıcının ekle/çıkar düzenlemeleri (S.program) doğrulaması ---------- */
+function sanitizeRec(r,dayId,usedSlots){
+  if(!r||typeof r!=='object')return null;
+  const slot=typeof r.slot==='string'&&r.slot.indexOf(dayId+'-')===0&&!usedSlots.has(r.slot)?r.slot:null;
+  if(!slot)return null;
+  const ad=typeof r.ad==='string'&&r.ad.trim()?r.ad.trim().slice(0,60):null;
+  if(!ad)return null;
+  const numd=(v,a,b,d)=>{const n=parseFloat(v);return isFinite(n)?clamp(n,a,b):d};
+  const rec={
+    slot,ad,
+    mid:typeof r.mid==='string'&&r.mid.trim()?r.mid.trim().slice(0,40):slot,
+    sets:Math.round(numd(r.sets,1,10,3)),
+    min:Math.round(numd(r.min,1,200,8)),
+    max:Math.round(numd(r.max,1,200,12)),
+    rest:typeof r.rest==='string'&&r.rest.trim()?r.rest.trim().slice(0,20):'90 sn',
+    not:typeof r.not==='string'?r.not.slice(0,120):'',
+    step:numd(r.step,0,50,2.5),
+    base:numd(r.base,0,500,0),
+    alts:Array.isArray(r.alts)?r.alts.filter(a=>typeof a==='string').slice(0,6).map(a=>a.slice(0,60)):[],
+    tip:typeof r.tip==='string'?r.tip.slice(0,300):''
+  };
+  if(rec.max<rec.min)rec.max=rec.min;
+  if(r.bw)rec.bw=true;
+  usedSlots.add(slot);
+  return rec;
+}
+function sanitizeProgram(raw){
+  const out={},usedSlots=new Set(Object.keys(FACTORY_SLOT));
+  if(!raw||typeof raw!=='object')return out;
+  DAYS.forEach(d=>{
+    const diff=raw[d.id];if(!diff||typeof diff!=='object')return;
+    const factorySlots=new Set(FACTORY_EX[d.id].map(e=>e.slot));
+    const removed=(Array.isArray(diff.removed)?diff.removed:[]).filter(s=>typeof s==='string'&&factorySlots.has(s));
+    const added=(Array.isArray(diff.added)?diff.added:[]).map(r=>sanitizeRec(r,d.id,usedSlots)).filter(Boolean);
+    const retired=(Array.isArray(diff.retired)?diff.retired:[]).map(r=>sanitizeRec(r,d.id,usedSlots)).filter(Boolean);
+    if(removed.length||added.length||retired.length)out[d.id]={removed,added,retired};
+  });
+  return out;
+}
 function sanitize(o){
   const D=defaults(),pr=o.profile&&typeof o.profile==='object'?o.profile:{};
   const rng=(v,a,b,d)=>{v=parseFloat(v);return isFinite(v)&&v>=a&&v<=b?v:d};
   o.profile={ad:typeof pr.ad==='string'&&pr.ad.trim()?pr.ad.trim().slice(0,30):D.profile.ad,boy:rng(pr.boy,100,250,D.profile.boy),kilo:rng(pr.kilo,30,300,D.profile.kilo),yas:rng(pr.yas,10,100,D.profile.yas),
     start:validDate(pr.start)?pr.start:D.profile.start,akt:[1.2,1.375,1.5,1.55,1.725].indexOf(+pr.akt)>=0?+pr.akt:D.profile.akt,hedef:['recomp','yag','kas'].indexOf(pr.hedef)>=0?pr.hedef:D.profile.hedef};
+  o.program=sanitizeProgram(o.program);
+  applyProgram(o.program);
   const L=o.logs&&typeof o.logs==='object'&&!Array.isArray(o.logs)?o.logs:{};o.logs={};
   Object.keys(L).forEach(k=>{
     const l=L[k];
@@ -839,6 +999,49 @@ function drawGelisim(){
   barChart($('#cDays'),wk.items.map(i=>({label:'H'+i.w,v:i.days,cur:i.cur,title:'Hafta '+i.w,rows:[['Antrenman günü',i.days]]})),{target:5,label:'Haftalık antrenman günü'});
 }
 
+/* ---------- PROGRAM DÜZENLEME (hareket ekle/çıkar) ---------- */
+function genSlotId(dayId){
+  let s;do{s=dayId+'-cst'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}while(SLOT[s]);
+  return s;
+}
+function addExerciseToDay(dayId,rec){
+  const diff=S.program[dayId]||(S.program[dayId]={removed:[],added:[],retired:[]});
+  if(!diff.removed)diff.removed=[];if(!diff.added)diff.added=[];if(!diff.retired)diff.retired=[];
+  const full=sanitizeRec(Object.assign({},rec,{slot:genSlotId(dayId)}),dayId,new Set(Object.keys(SLOT)));
+  if(!full)return;
+  diff.added.push(full);
+  applyProgram(S.program);save();
+}
+function removeExerciseFromDay(dayId,slot){
+  if(!SLOT[slot])return;
+  const diff=S.program[dayId]||(S.program[dayId]={removed:[],added:[],retired:[]});
+  if(!diff.removed)diff.removed=[];if(!diff.added)diff.added=[];if(!diff.retired)diff.retired=[];
+  const ai=diff.added.findIndex(r=>r.slot===slot);
+  if(ai>=0){diff.retired.push(diff.added[ai]);diff.added.splice(ai,1)}
+  else if(FACTORY_SLOT[slot]){if(diff.removed.indexOf(slot)<0)diff.removed.push(slot)}
+  else return;
+  applyProgram(S.program);save();
+}
+function exPickerHTML(dayId){
+  const day=DAYS.find(d=>d.id===dayId);
+  const catopt=['<option value="">Tüm kategoriler</option>'].concat(EXCATS.map(c=>`<option value="${c[0]}">${c[1]}</option>`)).join('');
+  const rows=CATALOG.map(c=>`<button type="button" class="catrow" data-act="addexpick" data-day="${dayId}" data-cid="${esc(c.id)}" data-name="${esc(c.ad.toLowerCase())}" data-cat="${c.cat}"><b>${esc(c.ad)}</b><small>${EXCATS.find(x=>x[0]===c.cat)[1]} · ${c.sets}×${c.min}-${c.max}</small></button>`).join('');
+  return `<h2>${esc(day?day.ad:'')} · hareket ekle</h2><p class="sub">Kataloğdan seç ya da kendi hareketini yaz.</p>
+   <div class="fld full"><label for="exq">Ara</label><input id="exq" placeholder="örn. bench, curl, squat..." autocomplete="off"></div>
+   <div class="fld full"><label for="excatsel">Kategori</label><select id="excatsel">${catopt}</select></div>
+   <div class="catlist" id="exlist">${rows}</div>
+   <div class="fld full"><label for="exqname">Kataloğda yok mu? Kendi hareketini yaz</label><input id="exqname" placeholder="Hareket adı" maxlength="60"></div>
+   <div class="acts"><button class="btn ghost" data-act="closedlg">Vazgeç</button><button class="btn" data-act="addexcustomgo" data-day="${dayId}">Özel hareket ekle</button></div>`;
+}
+function filterCatalogRows(){
+  const list=$('#exlist');if(!list)return;
+  const qEl=$('#exq'),cEl=$('#excatsel');
+  const q=((qEl&&qEl.value)||'').trim().toLowerCase(),cat=(cEl&&cEl.value)||'';
+  $$('.catrow',list).forEach(b=>{
+    const okq=!q||b.dataset.name.indexOf(q)>=0,okc=!cat||b.dataset.cat===cat;
+    b.hidden=!(okq&&okc);
+  });
+}
 /* ---------- PROGRAM ---------- */
 V.program=()=>{
   const cur=clamp(weekOf(nowISO()),1,12),rw=ui.roadW||cur;
@@ -846,7 +1049,8 @@ V.program=()=>{
   const p=PH[rw-1],ws=addDays(S.profile.start,7*(rw-1));
   const days=DAYS.map(d=>`<div class="card day${ui.openDay===d.id?' open':''}" data-day="${d.id}">
    <button class="head" data-act="opday" data-day="${d.id}" aria-expanded="${ui.openDay===d.id}"><span class="dn">${d.k}</span><div class="grow"><h3>${esc(d.t)}</h3><div class="sub">${esc(d.odak)} · ~${d.dk} dk · ${d.ex.length} hareket</div></div></button>
-   <div class="exl"><div class="list">${d.ex.map(e=>`<div class="li"><div><b>${esc(e.ad)}</b><small>↺ ${e.alts.map(esc).join(' / ')}</small></div><span class="badge">${e.slot==='sal-pu'?'1 × Max':e.sets+' × '+e.min+'-'+e.max}</span></div>`).join('')}</div>
+   <div class="exl"><div class="list">${d.ex.map(e=>`<div class="li"><div><b>${esc(e.ad)}</b>${e.alts.length?'<small>↺ '+e.alts.map(esc).join(' / ')+'</small>':''}</div><span class="row" style="gap:8px"><span class="badge">${e.slot==='sal-pu'?'1 × Max':e.sets+' × '+e.min+'-'+e.max}</span><button class="linkbtn" data-act="rmex" data-day="${d.id}" data-slot="${e.slot}">Kaldır</button></span></div>`).join('')}</div>
+   <button class="btn ghost" style="margin-top:8px;width:100%" data-act="addex" data-day="${d.id}">+ Hareket ekle</button>
    <button class="btn" style="margin-top:8px;width:100%" data-act="start" data-day="${d.id}">Bu antrenmanı başlat</button></div></div>`).join('');
   const gl=[['RIR','Reps In Reserve: setin sonunda "daha kaç tekrar yapabilirdim?". RIR 2 → 2 tekrar daha yapabilirdin ama bıraktın.'],['Failure','Formu bozmadan bir tekrar daha kaldıramadığın nokta. Sadece programda yazan yerlerde.'],['Beyond failure','Failure\'dan sonra devam: kg\'ı %20-30 düşürüp devam (drop-set) ya da 10-15 sn dinlenip 2-3 tekrar daha (rest-pause).'],['Deload','Bilerek hafif geçen hafta. Eklemler ve sinir sistemi toparlanır, sonrasında daha güçlü dönersin.'],['Çift ilerleme','Önce aynı kg\'da tekrar aralığının üstüne çık (örn. 4×8), sonra kg ekle ve alt sınırdan (4×6) tekrar başla. Uygulama bunu senin yerine takip eder.'],['Versiyon','Alet doluysa ya da zorlanırsan alternatifi seç. O hareket ayrı takip edilir, grafiği bozmaz.'],['Tahmini 1RM','Tek tekrarda kaldırabileceğin tahmini max (Epley: kg × (1 + tekrar/30)). Güç gelişimini görmek için; gidip max denemene gerek yok.'],['Kg nasıl yazılır?','Dambılda tek dambılın ağırlığı (2 × 20 kg → 20). Barda toplam ağırlık (bar dahil). Makinede kilit pimindeki sayı.']];
   return `<div class="stack">
@@ -1188,7 +1392,7 @@ function loadDemo(){
 function removeDemo(){
   if(!S.demo||!S.backup)return;
   S=Object.assign(defaults(),S.backup,{demo:false,backup:null});
-  save();renderBanner();closeDlg();ui.chart=null;render();
+  applyProgram(S.program);save();renderBanner();closeDlg();ui.chart=null;render();
 }
 function markBackup(){S.lastBackup=new Date().toISOString();save();renderBanner()}
 function exportData(){
@@ -1212,7 +1416,7 @@ function importData(file){
 
 
 /* ============================== ANTRENÖR / RAPOR ============================== */
-const MUT=new Set(['fill','savebody','delbody','uy','demo','rmdemo','saveset','saveprofile','reset','import','closewelcome','tourgo','pdfreport','pastecoach','openpaste','snooze','accent','accentok','installpwa']);
+const MUT=new Set(['fill','savebody','delbody','uy','demo','rmdemo','saveset','saveprofile','reset','import','closewelcome','tourgo','pdfreport','pastecoach','openpaste','snooze','accent','accentok','installpwa','addex','addexpick','addexcustomgo','rmex']);
 const normalize=o=>sanitize(Object.assign(defaults(),o,{profile:Object.assign(defaults().profile,o.profile||{}),demo:false,backup:null}));
 function logStatus(l){
   const ex=SLOT[l.slot],c=cs(l);if(!ex||!c.length)return null;
@@ -1358,6 +1562,21 @@ document.addEventListener('click',e=>{
     case 'road':ui.roadW=+t.dataset.w;render(true);break;
     case 'opday':ui.openDay=ui.openDay===t.dataset.day?null:t.dataset.day;render(true);break;
     case 'start':ui.day=t.dataset.day;ui.date=todayISO();setTab('bugun');break;
+    case 'addex':openDlg(exPickerHTML(t.dataset.day));break;
+    case 'addexpick':{
+      const cat=CATALOG.find(c=>c.id===t.dataset.cid);if(!cat)return;
+      addExerciseToDay(t.dataset.day,{mid:cat.mid,ad:cat.ad,sets:cat.sets,min:cat.min,max:cat.max,rest:cat.rest,step:cat.step,base:cat.base,alts:cat.alts,tip:cat.tip,not:cat.not,bw:cat.bw});
+      closeDlg();ui.openDay=t.dataset.day;render(true);break;
+    }
+    case 'addexcustomgo':{
+      const name=($('#exqname').value||'').trim();if(!name){alert('Hareket adını yaz.');return}
+      addExerciseToDay(t.dataset.day,{ad:name});closeDlg();ui.openDay=t.dataset.day;render(true);break;
+    }
+    case 'rmex':{
+      const ex=SLOT[t.dataset.slot];if(!ex)return;
+      if(confirm(ex.ad+' bu günden kaldırılsın mı? Geçmiş kayıtların silinmez.')){removeExerciseFromDay(t.dataset.day,t.dataset.slot);render(true)}
+      break;
+    }
     case 'uw':{const w=clamp((ui.uyumW||clamp(weekOf(nowISO()),1,12))+ +t.dataset.d,1,12);ui.uyumW=w;render(true);break}
     case 'uy':{const w=ui.uyumW||clamp(weekOf(nowISO()),1,12),k=t.dataset.k,u=S.uyum[w]||(S.uyum[w]={});u[k]=clamp((u[k]||0)+ +t.dataset.d,0,7);save();render(true);break}
     case 'savebody':{
@@ -1410,6 +1629,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',e=>{
   const t=e.target;
+  if(t.id==='excatsel'){filterCatalogRows();return}
   if(t.id==='chartsel'){if(t.value){ui.chart=t.value;render(true)}return}
   if(t.id==='dsel'){ui.date=t.value||todayISO();ui.day=undefined;render();return}
   if(t.id==='coachf'){if(t.files[0])openReport(t.files[0]);t.value='';return}
@@ -1432,7 +1652,9 @@ document.addEventListener('change',e=>{
   }
 });
 document.addEventListener('input',e=>{
-  const t=e.target,art=t.closest&&t.closest('.ex');if(!art||!t.matches('input'))return;
+  const t=e.target;
+  if(t.id==='exq'){filterCatalogRows();return}
+  const art=t.closest&&t.closest('.ex');if(!art||!t.matches('input'))return;
   if(t.classList.contains('kg')){
     const row=t.closest('.set'),rows=$$('.set',art),i=rows.indexOf(row);
     for(let j=i+1;j<rows.length;j++){const rp=$('.rp',rows[j]);if(!rp.value)$('.kg',rows[j]).value=t.value}
